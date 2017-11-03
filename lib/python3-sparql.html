@@ -1,0 +1,118 @@
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.3/ace.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.3/ext-language_tools.js"></script>
+<script type="text/javascript">
+    RED.nodes.registerType('sparql',{
+        category: 'function',
+        color: '#fdd0a2',
+        defaults: {
+            name: {value: ""},
+            prefix: {value:""},
+            func: {value: ""},
+            outputs: {value: 1}  // Ofuscated way to persist the number of outputs of the node
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: "sparqlThumb.png",
+        label: function() {
+            return this.name;
+        },
+        oneditprepare: function() {
+            $( "#node-input-outputs" ).spinner({
+                min:1
+            });
+            var langTools = ace.require('ace/ext/language_tools');
+            this.editor = ace.edit('node-input-func-editor');
+            this.editor.setTheme('ace/theme/tomorrow');
+            this.editor.getSession().setMode('ace/mode/python');
+            this.editor.setValue($("#node-input-func").val(), -1);
+            this.editor.setOptions({
+                    enableBasicAutocompletion: true,
+                    enableLiveAutocompletion: true,
+                    highlightSelectedWord: true,
+                    useSoftTabs: true,
+                    tabSize: 4,
+            });
+            var noderedKeywords = [
+                'msg', 'msg.payload', 'node', 'node.send',
+                'node.log', 'node.warn', 'node.error', 'node.status'
+            ];
+            this.editor.completers.push({
+                getCompletions: function (state, session, pos, prefix, callback) {
+                    callback(null, noderedKeywords.map(function (word) {
+                        return {
+                            name: word,
+                            value: word,
+                            score: 0,
+                            meta: 'Node-RED'
+                        };
+                    }));
+                }
+            });
+            this.editor.focus();
+        },
+        oneditsave: function() {
+            var annot = this.editor.getSession().getAnnotations();
+            this.noerr = 0;
+            $("#node-input-noerr").val(0);
+            for (var k=0; k < annot.length; k++) {
+                //console.log(annot[k].type,":",annot[k].text, "on line", annot[k].row);
+                if (annot[k].type === "error") {
+                    $("#node-input-noerr").val(annot.length);
+                    this.noerr = annot.length;
+                }
+            }
+            $("#node-input-func").val(this.editor.getValue());
+            delete this.editor;
+        },
+        oneditresize: function(size) {
+            var rows = $("#dialog-form>div:not(.node-text-editor-row)");
+            var height = $("#dialog-form").height();
+            for (var i=0;i<rows.size();i++) {
+                height -= $(rows[i]).outerHeight(true);
+            }
+            var editorRow = $("#dialog-form>div.node-text-editor-row");
+            height -= (parseInt(editorRow.css("marginTop"))+parseInt(editorRow.css("marginBottom")));
+            $(".node-text-editor").css("height",height+"px");
+            this.editor.resize();
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="sparql">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> <span>Name</span></label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+         <div class="form-row">
+         <label for="node-input-prefix"><i class="icon-tag"></i>Endpoint</label>
+         <input type="text" id="node-input-prefix">
+    </div>
+    <div class="form-row" style="margin-bottom: 0px;">
+        <label for="node-input-func"><i class="fa fa-wrench"></i> <span>Query</span></label>
+        <input type="hidden" id="node-input-func" autofocus="autofocus">
+        <input type="hidden" id="node-input-noerr">
+    </div>
+    <div class="form-row node-text-editor-row">
+        <div style="height: 250px; min-height:150px;" class="node-text-editor" id="node-input-func-editor" ></div>
+    </div>
+    <div class="form-row">
+        <label for="node-input-outputs"><i class="fa fa-random"></i> <span>Outputs</span></label>
+        <input id="node-input-outputs" style="width: 60px;" value="1">
+    </div>
+    <div class="form-tips"><span>See the Info tab for a query demo.</span></div>
+</script>
+
+<script type="text/x-red" data-help-name="sparql">
+    <p>A Node-RED node that allows for the execution of SPARQL queries.</p>
+    <p>The implementation is based on the one of <a href="https://www.npmjs.com/package/node-red-contrib-python3-function">Python 3 Function NodeRED Node.</a></p>
+    <p>The node depends on the python libraries: sparqlwrapper and rdflib. These can be installed with the commands:</p>
+    <p><pre>pip install sparqlwrapper<br>pip install rdflib</pre></p>
+
+    <h2>Usage</h2>
+    <p>The endpoint block is used to set the SPARQL endpoint on which the query will be performed.</p>
+    <p>For example: <code>http://dbpedia.org/sparql</code></p>
+    <p>The query block is where the query should actually be written.</p>
+    <p>For example:<br> <code>PREFIX rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt;<br>SELECT ?label<br>WHERE { &lt;http://dbpedia.org/resource/Asturias&gt; rdfs:label ?label }</code></p>
+    <p>The message is passed in as a Python dictionary called <code>msg</code>.</p>
+    <p>By convention, the result of the query will be stored on: <code>msg['payload']</code>.</p>
+</script>

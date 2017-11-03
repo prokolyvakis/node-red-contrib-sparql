@@ -1,0 +1,35 @@
+{
+  "name": "node-red-contrib-sparql",
+  "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prokolyvakis/node-red-contrib-sparql"
+  },
+  "description": "Define a Node-RED node that allows for the execution of SPARQL queries.",
+  "keywords": [
+    "node-red",
+    "sparql",
+    "python",
+    "rdflib",
+    "sparqlwrapper",
+    "hack"
+  ],
+  "author": "Prodromos Kolyvakis",
+  "license": "MIT",
+  "node-red": {
+    "nodes": {
+      "sparql": "lib/python3-sparql.js"
+    }
+  },
+  "dependencies": {
+  },
+   "contributors": [
+    {
+      "name": "Prodromos Kolyvakis",
+      "email": "prokolyvakis@gmail.com",
+      "url": "https://github.com/prokolyvakis",
+      "contributions": 1,
+      "hireable": true
+    }
+  ]
+}
