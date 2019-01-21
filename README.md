@@ -12,6 +12,11 @@ To install - change to your Node-RED user directory, which typically is:
 
 and copy-paste the `node-red-contrib-sparql` inside it!
 
+Or
+
+`sudo npm install prokolyvakis/node-red-contrib-sparql --save`
+
+
 Usage
 -----
 
